@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Peak } from "../data";
 import { X, ShieldAlert, Footprints, ClipboardList, CheckSquare, MessageSquare, Sparkles, Navigation, CloudLightning, Loader2, ArrowUpRight, Share2 } from "lucide-react";
+import PeakWeather from "./PeakWeather";
 
 interface PeakDetailProps {
   peak: Peak;
@@ -161,6 +162,9 @@ export default function PeakDetail({
                 </h3>
                 <p className="text-slate-300 leading-relaxed text-xs">{peak.description}</p>
               </div>
+
+              {/* Real-time Mountain Weather Forecast */}
+              <PeakWeather peak={peak} />
 
               {/* Core numbers grid */}
               <div className="grid grid-cols-2 gap-3 pb-2">

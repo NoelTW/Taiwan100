@@ -4,6 +4,7 @@ import IosFrame from "./components/IosFrame";
 import PeakDetail from "./components/PeakDetail";
 import GpsCockpit from "./components/GpsCockpit";
 import OfflineManager from "./components/OfflineManager";
+import SafetyChecklist from "./components/SafetyChecklist";
 import { TAIWAN_100_PEAKS, Peak, SavedTrack, OFFLINE_PACKS, OfflineMapPack } from "./data";
 import { 
   Compass, 
@@ -382,6 +383,14 @@ export default function App() {
     } finally {
       setIsAiLoading(false);
     }
+  };
+
+  const handleRegisterSafetyLog = (reportText: string, aiReplyText: string) => {
+    setGeneralMessages(prev => [
+      ...prev,
+      { role: "user", text: reportText },
+      { role: "model", text: aiReplyText }
+    ]);
   };
 
   // Filters peak directory
@@ -871,8 +880,15 @@ export default function App() {
                 </p>
               </div>
 
-              {/* Chat View messages */}
-              <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3.5">
+              {/* Chat View messages & Safety Quick-Check Dashboard */}
+              <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+                
+                {/* Interactive pre-hike checklists based on climb difficulty parameters */}
+                <SafetyChecklist 
+                  initialPeak={selectedPeak}
+                  onRegisterLogWithAi={handleRegisterSafetyLog}
+                />
+
                 {generalMessages.map((msg, idx) => (
                   <div 
                     key={idx} 
@@ -993,7 +1009,6 @@ export default function App() {
           <button
             onClick={() => {
               setActiveTab("assistant");
-              setSelectedPeak(null);
             }}
             className={`flex flex-col items-center justify-center gap-0.5 transition-colors ${
               activeTab === "assistant" ? "text-[#d4ff00]" : "text-slate-500 hover:text-slate-400"
@@ -1018,7 +1033,7 @@ export default function App() {
         </footer>
 
         {/* Selected Peak Bottom Specs sliding Drawer Sheet */}
-        {selectedPeak && !activeTrackingPeak && (
+        {selectedPeak && activeTab !== "assistant" && !activeTrackingPeak && (
           <PeakDetail 
             peak={selectedPeak}
             isCompleted={completedPeakIds.includes(selectedPeak.id)}
