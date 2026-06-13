@@ -1,0 +1,6 @@
+{
+  "name": "Taiwan 100 Peaks Trails & GPS Tracker",
+  "description": "An interactive offline-capable iOS hiking simulator for scaling the Taiwan 100 Peaks. Features live GPS tracking cockpit, elevation profiling, cached topographic maps, peak achievements index, and a safety rescue assistant.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
