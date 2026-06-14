@@ -40,6 +40,7 @@ import { UserAccount, ShareConcept } from "./types";
 export default function App() {
   // Navigation State
   const [activeTab, setActiveTab] = useState<"dashboard" | "peaks" | "map" | "assistant" | "offline">("dashboard");
+  const [lang, setLang] = useState<"en" | "zh">("zh");
   
   // Peaks lists state
   const [searchQuery, setSearchQuery] = useState("");
@@ -58,8 +59,23 @@ export default function App() {
 
   // General AI Chat Assistant State
   const [generalMessages, setGeneralMessages] = useState<{ role: "user" | "model"; text: string }[]>([
-    { role: "model", text: "⛰️ Hello! I am AlpineGuide AI. Ask me anything about scaling Taiwan's 100 peaks, gear lists, cabin permits, water checkpoints, or emergency procedures." }
+    { role: "model", text: "⛰️ 您好！我是 AlpineGuide 百岳防護安全 AI。有關於申辦台灣百岳入山許可證、避難山屋中籤抽籤秘笈、水源分布、風速防寒技巧以及 112 無訊號搜救熱線，請儘管向我提問。" }
   ]);
+
+  // Synchronously update welcome greeting if it's the untouched default
+  useEffect(() => {
+    setGeneralMessages(prev => {
+      if (prev.length === 1 && prev[0].role === "model") {
+        return [{
+          role: "model",
+          text: lang === "zh" 
+            ? "⛰️ 您好！我是 AlpineGuide 百岳防護安全 AI。有關於申辦台灣百岳入山許可證、避難山屋中籤抽籤秘笈、水源分布、風速防寒技巧以及 112 無訊號搜救熱線，請儘管向我提問。"
+            : "⛰️ Hello! I am AlpineGuide AI. Ask me anything about scaling Taiwan's 100 peaks, gear lists, cabin permits, water checkpoints, or emergency procedures."
+        }];
+      }
+      return prev;
+    });
+  }, [lang]);
   const [userInput, setUserInput] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
 
@@ -447,27 +463,38 @@ export default function App() {
           <div className="flex items-center gap-1.5">
             <Compass className="w-5 h-5 text-[#d4ff00] animate-spin-slow" />
             <h1 className="text-xs font-bold tracking-[0.15em] text-slate-100 uppercase">
-              {activeTab === "dashboard" && "Hiker Dashboard"}
-              {activeTab === "peaks" && "Taiwan Peak 100"}
-              {activeTab === "map" && "Topographic Radar"}
-              {activeTab === "assistant" && "Alpine Safety AI"}
-              {activeTab === "offline" && "Topo Downloader"}
+              {activeTab === "dashboard" && (lang === "zh" ? "百岳登山者主頁" : "Hiker Dashboard")}
+              {activeTab === "peaks" && (lang === "zh" ? "台灣百岳百大名山" : "Taiwan Peak 100")}
+              {activeTab === "map" && (lang === "zh" ? "等高線地形雷達" : "Topographic Radar")}
+              {activeTab === "assistant" && (lang === "zh" ? "安全助理與通訊" : "Alpine Safety AI")}
+              {activeTab === "offline" && (lang === "zh" ? "離線地圖下載器" : "Topo Downloader")}
             </h1>
           </div>
           
-          {/* Active tracker header pill */}
-          {activeTrackingPeak && (
-            <button 
-              onClick={() => {
-                setSelectedPeak(activeTrackingPeak);
-                setActiveTab("map");
-              }}
-              className="flex items-center gap-1.5 bg-[#d4ff00]/10 hover:bg-[#d4ff00]/25 border border-[#d4ff00]/25 px-2.5 py-1 rounded-full text-[10px] text-[#d4ff00] font-bold transition-all animate-pulse"
+          <div className="flex items-center gap-2">
+            {/* Language Switcher */}
+            <button
+              onClick={() => setLang(prev => prev === "en" ? "zh" : "en")}
+              className="px-2 py-1 bg-white/5 hover:bg-white/10 active:bg-[#d4ff00]/20 border border-white/10 text-gray-300 text-[10.5px] font-black rounded-lg uppercase tracking-wider transition-all cursor-pointer"
+              title={lang === "zh" ? "Switch to English" : "切換至繁體中文"}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#d4ff00]"></span>
-              Live Track: {activeTrackingPeak.nameCH}
+              {lang === "zh" ? "EN" : "繁中"}
             </button>
-          )}
+
+            {/* Active tracker header pill */}
+            {activeTrackingPeak && (
+              <button 
+                onClick={() => {
+                  setSelectedPeak(activeTrackingPeak);
+                  setActiveTab("map");
+                }}
+                className="flex items-center gap-1.5 bg-[#d4ff00]/10 hover:bg-[#d4ff00]/25 border border-[#d4ff00]/25 px-2.5 py-1 rounded-full text-[10px] text-[#d4ff00] font-bold transition-all animate-pulse"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[#d4ff00]"></span>
+                {lang === "zh" ? "實時測算" : "Live Track"}: {activeTrackingPeak.nameCH}
+              </button>
+            )}
+          </div>
         </header>
 
         {/* Dynamic viewport scroll based on Active Screen Tab */}
@@ -490,34 +517,40 @@ export default function App() {
                     </div>
                     <div>
                       <h2 className="text-sm font-extrabold text-slate-100 flex items-center gap-1 uppercase tracking-wide">
-                        {currentUser?.nickname || "Climber"}
+                        {currentUser?.nickname || (lang === "zh" ? "百岳攀登客" : "Climber")}
                         <Award className="w-4 h-4 text-[#d4ff00]" />
                       </h2>
-                      <p className="text-[9px] uppercase tracking-[0.08em] text-gray-400 font-bold">Joined: {currentUser?.joinedDate || "June 2026"}</p>
+                      <p className="text-[9px] uppercase tracking-[0.08em] text-gray-400 font-bold">
+                        {lang === "zh" ? "啟航日期" : "Joined"}: {currentUser?.joinedDate || (lang === "zh" ? "2026年6月" : "June 2026")}
+                      </p>
                     </div>
                   </div>
 
                   <button
                     onClick={handleLogOut}
                     className="p-1 px-2 rounded-lg bg-white/5 hover:bg-rose-950/20 text-gray-400 hover:text-rose-400 active:scale-95 transition-all text-[9.5px] font-bold border border-white/5 flex items-center gap-1 cursor-pointer"
-                    title="Sign Out of Hiker Profile"
+                    title={lang === "zh" ? "鎖定帳戶登出" : "Sign Out of Hiker Profile"}
                   >
                     <LogOut className="w-3 h-3" />
-                    Lock App
+                    {lang === "zh" ? "鎖定系統" : "Lock App"}
                   </button>
                 </div>
 
                 {/* Score numbers block */}
                 <div className="grid grid-cols-2 gap-4 mt-5 pt-4 border-t border-white/10">
                   <div>
-                    <span className="text-[10px] uppercase tracking-wider text-gray-450 block font-bold text-gray-400">Completed Peaks</span>
+                    <span className="text-[10px] uppercase tracking-wider text-gray-450 block font-bold text-gray-400">
+                      {lang === "zh" ? "已征服百岳山頭" : "Completed Peaks"}
+                    </span>
                     <div className="flex items-baseline gap-1 mt-0.5">
                       <span className="text-2xl font-mono font-black text-slate-100">{totalSummitCount}</span>
                       <span className="text-xs text-gray-500 font-bold">/ 100</span>
                     </div>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase tracking-wider text-gray-455 block font-bold text-gray-400">Summit Altitudes</span>
+                    <span className="text-[10px] uppercase tracking-wider text-gray-455 block font-bold text-gray-400">
+                      {lang === "zh" ? "累計登頂海拔高度" : "Summit Altitudes"}
+                    </span>
                     <div className="flex items-baseline gap-1 mt-0.5">
                       <span className="text-2.5xl font-mono font-black text-[#d4ff00]">{climbedHeightsMeters.toLocaleString()}</span>
                       <span className="text-[10px] text-gray-400">m</span>
@@ -528,7 +561,7 @@ export default function App() {
                 {/* Summit Completion bar meter */}
                 <div className="space-y-1.5 mt-4">
                   <div className="flex items-center justify-between text-[10px] text-gray-400 font-bold">
-                    <span className="uppercase tracking-wider">Baiyue Completion 100 Peaks</span>
+                    <span className="uppercase tracking-wider">{lang === "zh" ? "台灣百岳登頂進度比例" : "Baiyue Completion 100 Peaks"}</span>
                     <span className="font-mono text-[#d4ff00]">{((totalSummitCount / 100) * 100).toFixed(1)}%</span>
                   </div>
                   <div className="w-full bg-[#050705] h-2.5 rounded-full overflow-hidden border border-white/10">
@@ -545,33 +578,35 @@ export default function App() {
                   className="w-full mt-4 py-2 bg-white/5 hover:bg-[#d4ff00]/10 text-[#d4ff00] border border-[#d4ff00]/25 hover:border-[#d4ff00]/60 rounded-xl text-[9px] uppercase tracking-widest font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Share2 className="w-3.5 h-3.5 text-[#d4ff00]" />
-                  Share Accomplishments Card
+                  {lang === "zh" ? "產出百岳登頂榮譽卡" : "Share Accomplishments Card"}
                 </button>
               </div>
 
               {/* Dynamic Hiker Badges Carousel */}
               <div className="space-y-2">
-                <h3 className="text-[10px] text-[#d4ff00] uppercase font-black tracking-widest pl-1">Earned Badges</h3>
+                <h3 className="text-[10px] text-[#d4ff00] uppercase font-black tracking-widest pl-1">
+                  {lang === "zh" ? "已解鎖百岳榮譽勳章" : "Earned Badges"}
+                </h3>
                 <div className="flex gap-2.5 overflow-x-auto pb-1.5 pt-0.5 scrollbar-none snap-x pr-2">
                   <div className="bg-black/40 border border-white/5 rounded-2xl p-3 flex flex-col items-center justify-center shrink-0 w-[105px] text-center snap-center relative">
                     <Flame className={`w-6 h-6 mb-1 ${totalSummitCount > 0 ? "text-orange-500" : "text-[#d4ff00]/20"}`} />
-                    <span className="text-[10px] font-bold text-slate-200 truncate w-full">First Step</span>
-                    <span className="text-[8px] text-gray-500 mt-0.5 font-bold">1 Peak</span>
+                    <span className="text-[10px] font-bold text-slate-200 truncate w-full">{lang === "zh" ? "初登試煉" : "First Step"}</span>
+                    <span className="text-[8px] text-gray-500 mt-0.5 font-bold">{lang === "zh" ? "1座百岳" : "1 Peak"}</span>
                   </div>
                   <div className="bg-black/40 border border-white/5 rounded-2xl p-3 flex flex-col items-center justify-center shrink-0 w-[105px] text-center snap-center">
                     <Trophy className={`w-6 h-6 mb-1 ${completedPeakIds.includes("yushan-main") ? "text-[#d4ff00] drop-shadow-[0_0_8px_#d4ff00]" : "text-slate-600"}`} />
-                    <span className="text-[10px] font-bold text-slate-200 truncate w-full">Jade Conqueror</span>
-                    <span className="text-[8px] text-gray-500 mt-0.5 font-bold font-light">Mt Jade Done</span>
+                    <span className="text-[10px] font-bold text-slate-200 truncate w-full">{lang === "zh" ? "玉山征服者" : "Jade Conqueror"}</span>
+                    <span className="text-[8px] text-gray-500 mt-0.5 font-bold font-light">{lang === "zh" ? "玉山主峰完登" : "Mt Jade Done"}</span>
                   </div>
-                  <div className="bg-black/40 border border-white/5 rounded-2xl p-3 flex flex-col items-center justify-center shrink-0 w-[105px] text-center snap-center_disabled">
+                  <div className="bg-black/40 border border-white/5 rounded-2xl p-3 flex flex-col items-center justify-center shrink-0 w-[105px] text-center snap-center">
                     <Activity className={`w-6 h-6 mb-1 ${savedTracks.length > 0 ? "text-[#d4ff00]" : "text-slate-600"}`} />
-                    <span className="text-[10px] font-bold text-slate-200 truncate w-full">Telemetry Log</span>
-                    <span className="text-[8px] text-gray-500 mt-0.5 font-light">GPS Checked</span>
+                    <span className="text-[10px] font-bold text-slate-200 truncate w-full">{lang === "zh" ? "軌跡巨匠" : "Telemetry Log"}</span>
+                    <span className="text-[8px] text-gray-500 mt-0.5 font-light">{lang === "zh" ? "GPS軌跡正常" : "GPS Checked"}</span>
                   </div>
                   <div className="bg-black/40 border border-white/5 rounded-2xl p-3 flex flex-col items-center justify-center shrink-0 w-[105px] text-center snap-center">
                     <HardDrive className={`w-6 h-6 mb-1 ${offlinePacksState.some(p => p.downloaded) ? "text-[#d4ff00]" : "text-slate-600"}`} />
-                    <span className="text-[10px] font-bold text-slate-200 truncate w-full">Offline Safe</span>
-                    <span className="text-[8px] text-gray-500 mt-0.5 font-light font-bold">Offline pack</span>
+                    <span className="text-[10px] font-bold text-slate-200 truncate w-full">{lang === "zh" ? "地圖應急避難" : "Offline Safe"}</span>
+                    <span className="text-[8px] text-gray-500 mt-0.5 font-light font-bold">{lang === "zh" ? "等高線圖快取" : "Offline pack"}</span>
                   </div>
                 </div>
               </div>
@@ -579,18 +614,24 @@ export default function App() {
               {/* Saved GPS Track log lists */}
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between pl-1">
-                  <h3 className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Historical Telemetry Logs</h3>
+                  <h3 className="text-[10px] text-gray-500 uppercase font-black tracking-widest font-bold">
+                    {lang === "zh" ? "歷史行進與登山測算紀錄" : "Historical Telemetry Logs"}
+                  </h3>
                   <span className="text-[9px] font-mono font-black text-[#d4ff00] bg-[#d4ff00]/10 border border-[#d4ff00]/30 px-2 py-0.5 rounded-lg">
-                    {savedTracks.length} HIKES
+                    {savedTracks.length} {lang === "zh" ? "軌跡隨行" : "HIKES"}
                   </span>
                 </div>
 
                 {savedTracks.length === 0 ? (
                   <div className="bg-black/30 rounded-2xl border border-white/5 p-6 text-center space-y-2.5">
                     <History className="w-7 h-7 text-gray-600 mx-auto" />
-                    <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wide">No telemetry logs found</h4>
+                    <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wide">
+                      {lang === "zh" ? "未感應到歷史行蹤日誌" : "No telemetry logs found"}
+                    </h4>
                     <p className="text-[10px] text-gray-500 leading-normal max-w-[240px] mx-auto">
-                      Access the Peaks list, select a mountain, and trigger **Launch Track** to simulate live tracking loops.
+                      {lang === "zh" 
+                        ? "前往「百岳目錄」挑選一座百岳，並點擊下方「開啟實時記錄」按鈕以點亮登頂成就！"
+                        : "Access the Peaks list, select a mountain, and trigger **Launch Track** to simulate live tracking loops."}
                     </p>
                   </div>
                 ) : (
@@ -667,11 +708,15 @@ export default function App() {
               {/* Total Summary indicators list */}
               <div className="bg-slate-950/30 p-4 border border-slate-805/40 rounded-3xl grid grid-cols-2 gap-4">
                 <div className="p-1 text-center">
-                  <span className="text-[9px] text-slate-500 uppercase font-black tracking-widest block">Total Track Hours</span>
-                  <span className="text-xl font-mono font-bold text-slate-200 mt-1 inline-block">{totalDurationHrs} h</span>
+                  <span className="text-[9px] text-slate-500 uppercase font-black tracking-widest block font-bold">
+                    {lang === "zh" ? "累計登山行進工時" : "Total Track Hours"}
+                  </span>
+                  <span className="text-xl font-mono font-bold text-slate-200 mt-1 inline-block">{totalDurationHrs} {lang === "zh" ? "小時" : "h"}</span>
                 </div>
                 <div className="p-1 text-center border-l border-slate-800">
-                  <span className="text-[9px] text-slate-500 uppercase font-black tracking-widest block">Total Distance Hiked</span>
+                  <span className="text-[9px] text-slate-500 uppercase font-black tracking-widest block font-bold">
+                    {lang === "zh" ? "累計地平線拉伸里程" : "Total Distance Hiked"}
+                  </span>
                   <span className="text-xl font-mono font-bold text-slate-200 mt-1 inline-block">{totalHikedDistanceKm.toFixed(1)} km</span>
                 </div>
               </div>
@@ -691,10 +736,10 @@ export default function App() {
                   <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input 
                     type="text" 
-                    placeholder="Search peaks (e.g. Yushan, Jade, 雪山)..."
+                    placeholder={lang === "zh" ? "搜尋百岳名山 (如：玉山、雪山、奇萊、大白牆)..." : "Search peaks (e.g. Yushan, Jade, 雪山)..."}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full text-xs bg-black/60 border border-white/10 focus:border-[#d4ff00] rounded-xl py-2.5 pl-9 pr-4 text-white focus:outline-none transition-all"
+                    className="w-full text-xs bg-black/60 border border-white/10 focus:border-[#d4ff00] rounded-xl py-2.5 pl-9 pr-4 text-white focus:outline-none transition-all placeholder-gray-500"
                   />
                 </div>
 
@@ -703,33 +748,33 @@ export default function App() {
                   <div className="flex items-center justify-between text-[10px] text-gray-500 font-bold uppercase tracking-wider pl-0.5">
                     <span className="flex items-center gap-1.5">
                       <SlidersHorizontal className="w-3.5 h-3.5" />
-                      Filter Range & Grade
+                      {lang === "zh" ? "精細篩選山系與分級" : "Filter Range & Grade"}
                     </span>
-                    <span className="text-[#d4ff00]">{filteredPeaks.length} PEAKS</span>
+                    <span className="text-[#d4ff00]">{filteredPeaks.length} {lang === "zh" ? "座山頭" : "PEAKS"}</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-[10px] font-bold">
                     <select
                       value={selectedRange}
                       onChange={(e) => setSelectedRange(e.target.value)}
-                      className="bg-[#050705] border border-white/10 rounded-lg p-2 text-slate-300 focus:outline-none focus:border-[#d4ff00]"
+                      className="bg-[#050705] border border-white/10 rounded-lg p-2 text-slate-300 focus:outline-none focus:border-[#d4ff00] cursor-pointer"
                     >
-                      <option value="All">All Ranges</option>
-                      <option value="Yushan Range">Yushan Range</option>
-                      <option value="Hsuehshan Range">Hsuehshan Range</option>
-                      <option value="Central Range">Central Range</option>
+                      <option value="All">{lang === "zh" ? "所有台灣山脈" : "All Ranges"}</option>
+                      <option value="Yushan Range">{lang === "zh" ? "玉山山脈" : "Yushan Range"}</option>
+                      <option value="Hsuehshan Range">{lang === "zh" ? "雪山山脈" : "Hsuehshan Range"}</option>
+                      <option value="Central Range">{lang === "zh" ? "中央山脈" : "Central Range"}</option>
                     </select>
 
                     <select
                       value={selectedDifficulty}
                       onChange={(e) => setSelectedDifficulty(e.target.value)}
-                      className="bg-[#050705] border border-white/10 rounded-lg p-2 text-slate-300 focus:outline-none focus:border-[#d4ff00]"
+                      className="bg-[#050705] border border-white/10 rounded-lg p-2 text-slate-300 focus:outline-none focus:border-[#d4ff00] cursor-pointer"
                     >
-                      <option value="All">All Grades (A-D)</option>
-                      <option value="Class A">Class A</option>
-                      <option value="Class B">Class B</option>
-                      <option value="Class C">Class C</option>
-                      <option value="Class C+">Class C+</option>
+                      <option value="All">{lang === "zh" ? "所有難度等級" : "All Grades (A-D)"}</option>
+                      <option value="Class A">{lang === "zh" ? "A 級 (基礎登山)" : "Class A"}</option>
+                      <option value="Class B">{lang === "zh" ? "B 級 (進階縱走)" : "Class B"}</option>
+                      <option value="Class C">{lang === "zh" ? "C 級 (高難度荒野)" : "Class C"}</option>
+                      <option value="Class C+">{lang === "zh" ? "C+ 級 (斷崖風化點)" : "Class C+"}</option>
                     </select>
                   </div>
                 </div>
@@ -741,8 +786,8 @@ export default function App() {
                 {filteredPeaks.length === 0 ? (
                   <div className="text-center py-20 space-y-2">
                     <Compass className="w-8 h-8 text-slate-600 mx-auto" />
-                    <p className="text-slate-400 font-bold text-xs">No matching peaks found</p>
-                    <p className="text-[10px] text-slate-500">Refine search text or select 'All Ranges'.</p>
+                    <p className="text-slate-400 font-bold text-xs">{lang === "zh" ? "無相匹配的台灣百岳" : "No matching peaks found"}</p>
+                    <p className="text-[10px] text-slate-500">{lang === "zh" ? "請微調篩選字詞或將山系切回「所有山脈山系」。" : "Refine search text or select 'All Ranges'."}</p>
                   </div>
                 ) : (
                   filteredPeaks.map((peak) => {
@@ -773,7 +818,7 @@ export default function App() {
                               {peak.nameCH}
                             </span>
                             <span className="text-[10px] text-gray-500 font-medium truncate block">
-                              {peak.nameEN} (Grade: {peak.grade.replace("Class ", "")})
+                              {peak.nameEN} ({lang === "zh" ? "難度：" : "Grade: "}{peak.grade.replace("Class ", "")})
                             </span>
                           </div>
                         </div>
@@ -782,11 +827,11 @@ export default function App() {
                         <div className="flex items-center gap-2">
                           {isCompleted ? (
                             <span className="bg-[#d4ff00]/15 text-[#d4ff00] border border-[#d4ff00]/30 text-[9px] px-2 py-0.5 rounded font-bold font-mono">
-                              CONQUERED
+                              {lang === "zh" ? "已征服攀登" : "CONQUERED"}
                             </span>
                           ) : (
                             <span className="bg-white/5 border border-white/10 text-slate-400 text-[9px] px-2 py-0.5 rounded font-mono font-bold">
-                              GRADE {peak.grade.replace("Class ", "")}
+                              {lang === "zh" ? "等級" : "GRADE"} {peak.grade.replace("Class ", "")}
                             </span>
                           )}
                           <ChevronRight className="w-4 h-4 text-slate-600 group-hover:translate-x-0.5 group-hover:text-[#d4ff00] transition-all" />
@@ -809,13 +854,17 @@ export default function App() {
                 <div className="flex items-center gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></div>
                   <span className="text-slate-300 font-bold">
-                    {activeTrackingPeak ? `Tracking: ${activeTrackingPeak.nameCH}` : (selectedPeak ? `Focus: ${selectedPeak.nameCH}` : "Browse Peak topology")}
+                    {activeTrackingPeak 
+                      ? (lang === "zh" ? `實時測算定位: ${activeTrackingPeak.nameCH}` : `Tracking: ${activeTrackingPeak.nameCH}`) 
+                      : (selectedPeak 
+                        ? (lang === "zh" ? `鎖定山嶽: ${selectedPeak.nameCH}` : `Focus: ${selectedPeak.nameCH}`) 
+                        : (lang === "zh" ? "探索全台百岳等高線地形" : "Browse Peak topology"))}
                   </span>
                 </div>
                 
                 {/* Visualizer detail switcher button */}
-                <span className="text-[9px] font-mono text-slate-500 tracking-tighter bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded">
-                  ESRI TOPO STYLE
+                <span className="text-[9px] font-mono text-slate-500 tracking-tighter bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded font-black">
+                  {lang === "zh" ? "ESRI 向量地形風格" : "ESRI TOPO STYLE"}
                 </span>
               </div>
 
@@ -853,14 +902,16 @@ export default function App() {
                       </div>
                       <div>
                         <h4 className="text-xs font-black text-slate-100">{selectedPeak.nameCH}</h4>
-                        <p className="text-[10px] text-slate-500 font-medium">Click for specs sheet & GPS Tracker</p>
+                        <p className="text-[10px] text-slate-500 font-medium">
+                          {lang === "zh" ? "點擊查看等高線、水源、避難山房細節" : "Click for specs sheet & GPS Tracker"}
+                        </p>
                       </div>
                     </div>
                     <button
                       onClick={() => setSelectedPeak(selectedPeak)} // triggers Drawer open
-                      className="text-xs bg-emerald-500 text-slate-950 font-bold px-4 py-2 rounded-xl"
+                      className="text-xs bg-emerald-500 text-slate-950 font-black px-4 py-2 rounded-xl cursor-pointer"
                     >
-                      Open Specs
+                      {lang === "zh" ? "展開安全規格" : "Open Specs"}
                     </button>
                   </div>
                 )
@@ -876,7 +927,7 @@ export default function App() {
               <div className="px-5 py-2.5 bg-black/40 border-b border-white/5 flex items-start gap-2 text-[10px] text-gray-300 shrink-0 select-none">
                 <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#d4ff00]" />
                 <p className="leading-normal text-slate-400">
-                  <span className="text-[#d4ff00] font-black uppercase">Emergency Hotline</span>: Dial <span className="font-bold">112</span> if cell signal is unavailable (it routes through multi-carrier beacons). Stop, think, and prepare before acting.
+                  <span className="text-[#d4ff00] font-black uppercase">{lang === "zh" ? "救難應急求救熱線" : "Emergency Hotline"}</span>: {lang === "zh" ? "無手機網路、無電信數據信號時請直接撥打 " : "Dial "}<span className="font-bold">112</span>{lang === "zh" ? "(會實行跨多家電信商基地台信號強制作搜救路由支援)。請務必停下思考、預做防禦裝備備查再啟程。" : " if cell signal is unavailable. Stop, think, and prepare."}
                 </p>
               </div>
 
@@ -887,6 +938,7 @@ export default function App() {
                 <SafetyChecklist 
                   initialPeak={selectedPeak}
                   onRegisterLogWithAi={handleRegisterSafetyLog}
+                  lang={lang}
                 />
 
                 {generalMessages.map((msg, idx) => (
@@ -935,7 +987,7 @@ export default function App() {
                   <input 
                     type="text"
                     disabled={isAiLoading}
-                    placeholder="Ask about permit rules, gear weights, typhoon patterns..."
+                    placeholder={lang === "zh" ? "請輸入提問（例如：排雲山莊中籤指南、高山避難、颱風應急路網、洋蔥式穿搭物資）..." : "Ask about permit rules, gear weights, typhoon patterns..."}
                     value={userInput}
                     onChange={(e) => setUserInput(e.target.value)}
                     onKeyDown={(e) => {
@@ -961,6 +1013,7 @@ export default function App() {
             <OfflineManager 
               packs={offlinePacksState}
               onToggleDownload={handleToggleDownloadPack}
+              lang={lang}
             />
           )}
 
@@ -978,7 +1031,7 @@ export default function App() {
             }`}
           >
             <Trophy className="w-4.5 h-4.5" />
-            <span className="text-[9px] font-bold tracking-tight uppercase">Me Logs</span>
+            <span className="text-[9px] font-bold tracking-tight uppercase">{lang === "zh" ? "我的記錄" : "Me Logs"}</span>
           </button>
           
           <button
@@ -991,7 +1044,7 @@ export default function App() {
             }`}
           >
             <Compass className="w-4.5 h-4.5" />
-            <span className="text-[9px] font-bold tracking-tight uppercase">Peaks</span>
+            <span className="text-[9px] font-bold tracking-tight uppercase">{lang === "zh" ? "百岳目錄" : "Peaks"}</span>
           </button>
 
           <button
@@ -1003,7 +1056,7 @@ export default function App() {
             }`}
           >
             <MapIcon className="w-4.5 h-4.5" />
-            <span className="text-[9px] font-bold tracking-tight uppercase">Radar Map</span>
+            <span className="text-[9px] font-bold tracking-tight uppercase">{lang === "zh" ? "地形雷達" : "Radar Map"}</span>
           </button>
 
           <button
@@ -1015,7 +1068,7 @@ export default function App() {
             }`}
           >
             <Sparkles className="w-4.5 h-4.5" />
-            <span className="text-[9px] font-bold tracking-tight uppercase">Rescue AI</span>
+            <span className="text-[9px] font-bold tracking-tight uppercase">{lang === "zh" ? "安全助理" : "Rescue AI"}</span>
           </button>
 
           <button
@@ -1028,7 +1081,7 @@ export default function App() {
             }`}
           >
             <HardDrive className="w-4.5 h-4.5" />
-            <span className="text-[9px] font-bold tracking-tight uppercase">Offline</span>
+            <span className="text-[9px] font-bold tracking-tight uppercase">{lang === "zh" ? "離圖快取" : "Offline"}</span>
           </button>
         </footer>
 
@@ -1048,6 +1101,7 @@ export default function App() {
               setActiveTab("map");
             }}
             onShare={() => handleSharePeakMilestone(selectedPeak)}
+            lang={lang}
           />
         )}
 
