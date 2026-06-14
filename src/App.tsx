@@ -1112,6 +1112,7 @@ export default function App() {
             onClose={() => setActiveShareConcept(null)}
             userNickname={currentUser.nickname}
             userEmoji={currentUser.avatarEmoji}
+            lang={lang}
           />
         )}
 
